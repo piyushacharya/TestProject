@@ -19,7 +19,11 @@ class EvenHubsReader(BaseReader):
         Task.__init__(self, task_name,type)
 
     def execute(self):
-        ehConf = self.get_option_value("ehConf")
+        ehConf = {}
+        connectionString = self.get_option_value("YOUR.CONNECTION.STRING")
+        ehConf['eventhubs.connectionString'] = self.spark.sc._jvm.org.apache.spark.eventhubs.EventHubsUtils.encrypt(
+            connectionString)
+
         df = self.spark\
             .readStream\
             .format("eventhubs")\

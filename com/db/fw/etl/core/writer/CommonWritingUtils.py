@@ -1,24 +1,42 @@
 from com.db.fw.etl.core.common.Constants import *
 from pyspark.sql import SparkSession
 
-def delta_insert(spark, df, options, mode ):
+def delta_insert( df, options, mode ):
     db_name = options.get(COMMON_CONSTANTS.DB_NAME)
     table_name = options.get(COMMON_CONSTANTS.TABLE_NAME)
 
     input_options = options.get(COMMON_CONSTANTS.OPTIONS)
 
-    df_writer = df.write \
-        .format("delta") \
-        .mode(mode)
-
-    if COMMON_CONSTANTS.OPTIONS in options.keys():
-        df_writer = df_writer.options(input_options)
-
-    df_writer.save("{}.{}".format(db_name, table_name))
 
 
+    writer_type = options.get(COMMON_CONSTANTS.WRITER_TYPE)
 
 
+    if writer_type is not None and writer_type.upper() == "STREAM":
+
+        df_writer = df.writeStream \
+            .format("delta") \
+            .mode("append")
+
+        check_point = options.get(COMMON_CONSTANTS.CHECK_POINT_LOCATION,None)
+        if check_point is not None:
+            df_writer.option("checkpointLocation" ,check_point)
+
+        trigger_time = options.get(COMMON_CONSTANTS.TRIGGER_TIME, None)
+        if trigger_time is not None :
+            df_writer.trigger(continuous=str(trigger_time))
+
+        df_writer.toTable("{}.{}".format(db_name, table_name))
+
+    else:
+        df_writer = df.write \
+            .format("delta") \
+            .mode(mode)
+
+        if COMMON_CONSTANTS.OPTIONS in options.keys():
+            df_writer = df_writer.options(input_options)
+
+        df_writer.save("{}.{}".format(db_name, table_name))
 
 
 def delta_delete(spark, df, options):
@@ -32,11 +50,6 @@ def delta_delete(spark, df, options):
         sql = sql + "Where {}".format(where_condition)
 
     spark.sql(sql)
-
-
-
-
-
 
 
 
@@ -64,12 +77,15 @@ def delta_update(spark, df, options):
 def delta_merge(spark, df, options):
 
 
-    update_table_name= COMMON_CONSTANTS.upper_Lower_random_string(15)
-    df.createOrReplaceTempView(update_table_name)
+    source= COMMON_CONSTANTS.upper_Lower_random_string(15)
+    df.createOrReplaceTempView(source)
 
     db_name = options.get(COMMON_CONSTANTS.DB_NAME)
     table_name = options.get(COMMON_CONSTANTS.TABLE_NAME)
     merge_condition = options.get(COMMON_CONSTANTS.MERGE_CONDITION)
+
+    target = "{}.{}".format(db_name,table_name)
+    merge_condition=  "".join(merge_condition).format(target,source,target,source)
 
     do_update = options.get(COMMON_CONSTANTS.DO_UPDATE)
     do_delete =  options.get(COMMON_CONSTANTS.DO_DELETE)
@@ -77,7 +93,7 @@ def delta_merge(spark, df, options):
 
 
     merge_sql =" MERGE INTO {}.{} {}".format(db_name,table_name,"target")
-    merge_sql = merge_sql.join( " USING {} {} ON ".format(update_table_name,"source" , merge_condition))
+    merge_sql = merge_sql.join( " USING {} {} ON ".format(source,"source" , merge_condition))
 
     # column selection is pending
     if do_update == "true":
@@ -101,7 +117,7 @@ def delta_merge(spark, df, options):
 
     output= spark.sql(merge_sql)
 
-    spark.catalog.dropTempView(update_table_name)
+    spark.catalog.dropTempView(source)
 
     return (output)
 

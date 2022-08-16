@@ -73,6 +73,7 @@ class PipelineNodeBuilder:
     DUMMY_READER = "dummy_reader"
     DUMMY_WRITER = "dummy_writer"
     DUMMY_PROCESSOR = "dummy_processor"
+    CUSTOM_PROCESSOR = "custom_processor"
 
     EVENT_HUBS_READER = "event_hubs_reader"
     DELTA_WRITER = "delta_writer"
@@ -124,6 +125,8 @@ class PipelineNodeBuilder:
         elif self.type == PipelineNodeBuilder.DUMMY_WRITER:
             task = DummyWritter(self.name,self.type)
         elif self.type == PipelineNodeBuilder.DUMMY_PROCESSOR:
+            task = DummyProcessor(self.name,self.type)
+        elif self.type == PipelineNodeBuilder.CUSTOM_PROCESSOR:
             task = DummyProcessor(self.name,self.type)
         else:
             raise EtlBuilderException(" Invalid Param {}".format(str(self.type)))

@@ -19,7 +19,7 @@ class Task(threading.Thread, ABC):
         self.input_options = {}
         self.out_options = {}
         self.task_output_type = None;
-        self.task_status = None
+        self.task_status = PipelineNodeStatus.NONE
         self.task_facts = {}
         self.input_dataframes = {}
         self.input_dataframe = None

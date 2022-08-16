@@ -21,6 +21,7 @@ class DeltaWriter(BaseWriter):
         mode = self.get_option_value("mode")
         inputDf = self.get_input_dataframe();
 
+
         if mode == "append":
             delta_insert(self.spark, inputDf, self.input_options,COMMON_CONSTANTS.APPEND)
         elif mode == "overwrite":

@@ -19,8 +19,6 @@ class ForEachBatchWriter(BaseWriter):
 
         return latest_snaphot_df
 
-
-
     def upsert_to_postgres(self, df ):
         pass
 
@@ -63,10 +61,11 @@ class ForEachBatchWriter(BaseWriter):
 
     def execute(self):
         stream_input_df = self.get_input_dataframe();
-
+        check_point = self.get_option_value("checkpointLocation")
         stream_input_df.writeStream\
             .foreachBatch(self.multi_location_write)\
-            .outputMode("update")\
+            .outputMode("update") \
+            .option("checkpointLocation", check_point)\
             .start()
 
 

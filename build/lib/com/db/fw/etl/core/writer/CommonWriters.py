@@ -21,6 +21,7 @@ class DeltaWriter(BaseWriter):
         mode = self.get_option_value("mode")
         inputDf = self.get_input_dataframe();
 
+
         if mode == "append":
             delta_insert(self.spark, inputDf, self.input_options,COMMON_CONSTANTS.APPEND)
         elif mode == "overwrite":
@@ -34,3 +35,18 @@ class DeltaWriter(BaseWriter):
         else:
             raise InsufficientParamsException(
                 self.task_name, self.pipeline_name, str(self.input_options))
+
+
+
+class ConsoleWriter(BaseWriter):
+    def __init__(self, task_name, type):
+        Task.__init__(self, task_name, type)
+
+    def execute(self):
+        final_df = self.get_input_dataframe()
+
+
+        final_df.show(10)
+
+            # .writeStream.format("console")\
+            # .outputMode("append").start()

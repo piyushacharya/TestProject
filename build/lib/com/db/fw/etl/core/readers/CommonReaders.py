@@ -14,17 +14,3 @@ class BaseReader(Task):
 
 
 
-class EvenHubsReader(BaseReader):
-    def __init__(self, task_name,type):
-        Task.__init__(self, task_name,type)
-
-    def execute(self):
-        ehConf = self.get_option_value("ehConf")
-        df = self.spark\
-            .readStream\
-            .format("eventhubs")\
-            .options(**ehConf)\
-            .load()
-
-        self.set_output_dataframe(df)
-

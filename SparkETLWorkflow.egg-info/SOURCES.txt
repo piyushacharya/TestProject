@@ -24,11 +24,13 @@ com/db/fw/etl/core/common/__init__.py
 com/db/fw/etl/core/processor/CommonProcessors.py
 com/db/fw/etl/core/processor/__init__.py
 com/db/fw/etl/core/readers/CommonReaders.py
+com/db/fw/etl/core/readers/CommonStreamReaders.py
 com/db/fw/etl/core/readers/__init__.py
 com/db/fw/etl/core/writer/CommonWriters.py
 com/db/fw/etl/core/writer/CommonWritingUtils.py
 com/db/fw/etl/core/writer/__init__.py
 com/db/fw/etl/test/Hello.py
 com/db/fw/etl/test/Person.py
+com/db/fw/etl/test/TataPoc.py
 com/db/fw/etl/test/TestDummyPipeline.py
 com/db/fw/etl/test/__init__.py

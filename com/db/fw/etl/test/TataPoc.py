@@ -8,7 +8,8 @@ import logging
 from com.db.fw.etl.core.common.Constants import COMMON_CONSTANTS
 from com.db.fw.etl.core.common.DeltaStatLogger import IOService
 
-spark = SparkSession.builder.config("spark.jar.packages","com.microsoft.azure:azure-eventhubs-spark_2.12:2.3.21").getOrCreate()
+spark = SparkSession.builder.config("spark.jars.packages","com.microsoft.azure:azure-eventhubs-spark_2.12:2.3.21")\
+    .config("spark.jars","/Users/piyush.acharya/Downloads/").getOrCreate()
 
 # schema = get_poc_payload_schema(spark)
 
@@ -24,32 +25,6 @@ console_writer = PipelineNodeBuilder()\
     .set_name("console_writer")\
     .set_type(PipelineNodeBuilder.STREAM_CONSOLE_WRITER).build()
 
-base_event_parse_processor = PipelineNodeBuilder.build_custom_node(
-    TDBaseEventParseProcessor("base_event_parse_processor",
-                              PipelineNodeBuilder.CUSTOM_PROCESSOR))
-
-master_table_tcp_payment_processor = PipelineNodeBuilder.build_custom_node(
-    MasterProcessor("master_table_tcp_payment_processor",
-                    PipelineNodeBuilder.CUSTOM_PROCESSOR))
-
-history_with_dq_check_processor = PipelineNodeBuilder.build_custom_node(
-    HistoryWithDQCheckProcessor("history_with_dq_check_processor",
-                                PipelineNodeBuilder.CUSTOM_PROCESSOR))
-
-master_table_tcp_payment_writer = PipelineNodeBuilder() \
-    .set_name("master_table_tcp_payment_writer") \
-    .set_type(PipelineNodeBuilder.DELTA_WRITER) \
-    .add_input_option("mode", "append") \
-    .add_input_option(COMMON_CONSTANTS.DB_NAME, "tata_poc") \
-    .add_input_option(COMMON_CONSTANTS.TABLE_NAME, "master_table_tcp_payment") \
-    .add_input_option(COMMON_CONSTANTS.CHECK_POINT_LOCATION, "/tmp/tata_poc/check_points/master") \
-    .add_input_option(COMMON_CONSTANTS.TRIGGER_TIME, "1 seconds") \
-    .build()
-
-forEachBatchWriterTask = ForEachBatchWriter("foreach_writer_for_multi_location_writer",
-                                            PipelineNodeBuilder.CUSTOM_PROCESSOR)
-forEachBatchWriterTask.add_option_value("checkpointLocation", "/tmp/tata_poc/check_points/foreach")
-foreach_writer_for_multi_location_writer = PipelineNodeBuilder.build_custom_node(forEachBatchWriterTask)
 
 pipeline_name = "tata_poc_pipeline"
 pip_id = str(uuid.uuid1())

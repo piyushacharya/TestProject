@@ -46,6 +46,7 @@ class ConsoleWriter(BaseWriter):
         final_df = self.get_input_dataframe()
 
 
-        final_df.writeStream.format("console")\
-            .outputMode("append").start() \
-            .awaitTermination()
+        final_df.show(10)
+
+            # .writeStream.format("console")\
+            # .outputMode("append").start()

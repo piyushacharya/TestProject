@@ -3,11 +3,12 @@ import json
 from com.db.fw.etl.core.Exception.EtlExceptions import EtlBuilderException
 from com.db.fw.etl.core.Pipeline.PipelineGraph import PipelineGraph, Pipeline, PipelineNode, PipelineNodeStatus
 from com.db.fw.etl.core.Dummy.DummyTasks import *
-
+from com.db.fw.etl.core.readers.CommonStreamReaders import EvenHubsReader
+from com.db.fw.etl.core.writer.CommonWriters import DeltaWriter, ConsoleWriter
 
 
 class PipelineBuilder:
-    def __init__(self, spark, name, logger, pip_id,io_service):
+    def __init__(self, spark, name, logger, pip_id, io_service):
         self.pipelineGraph = PipelineGraph()
         self.logger = logger
         self.pipeLineName = name
@@ -26,19 +27,17 @@ class PipelineBuilder:
         return self
 
     def build(self):
-        pipeline = Pipeline(self.logger, self.spark, self.pipelineGraph, self.pipeLineName, self.pipid,self.io_service)
+        pipeline = Pipeline(self.logger, self.spark, self.pipelineGraph, self.pipeLineName, self.pipid, self.io_service)
         return pipeline
-
-
 
     def get_json_dump(pipeline):
         nodes = pipeline.pipelineGraph.nodes
         pip_id = pipeline.pipelineid
-        name= pipeline.name
+        name = pipeline.name
         meta_jsons = []
 
         for n in nodes.values():
-            node_metadata= {}
+            node_metadata = {}
 
             in_edges_coll = []
             node_metadata["in_edges_coll"] = in_edges_coll
@@ -57,25 +56,24 @@ class PipelineBuilder:
 
             meta_jsons.append(node_metadata)
 
-        return (pip_id,name,meta_jsons)
+        return (pip_id, name, meta_jsons)
 
-
-    def build_pipeline(pip_id,name,jsons):
-        print (jsons)
-
-
-
-
-
+    def build_pipeline(pip_id, name, jsons):
+        print(jsons)
 
 
 class PipelineNodeBuilder:
     DUMMY_READER = "dummy_reader"
     DUMMY_WRITER = "dummy_writer"
     DUMMY_PROCESSOR = "dummy_processor"
+    CUSTOM_PROCESSOR = "custom_processor"
 
     EVENT_HUBS_READER = "event_hubs_reader"
     DELTA_WRITER = "delta_writer"
+
+    STREAM_CONSOLE_WRITER = "stream_console_writer"
+
+
 
     def __init__(self):
         self.name = None
@@ -110,21 +108,25 @@ class PipelineNodeBuilder:
         self.name = name
         return self;
 
-
-
-
-
     def build(self):
         if self.name is None or self.type is None:
             raise EtlBuilderException(" Insufficient Param while building the node Name and Type are mandatory")
 
         task = None
         if self.type == PipelineNodeBuilder.DUMMY_READER:
-            task = DummyReader(self.name,self.type)
+            task = DummyReader(self.name, self.type)
         elif self.type == PipelineNodeBuilder.DUMMY_WRITER:
-            task = DummyWritter(self.name,self.type)
+            task = DummyWritter(self.name, self.type)
         elif self.type == PipelineNodeBuilder.DUMMY_PROCESSOR:
-            task = DummyProcessor(self.name,self.type)
+            task = DummyProcessor(self.name, self.type)
+        elif self.type == PipelineNodeBuilder.CUSTOM_PROCESSOR:
+            task = DummyProcessor(self.name, self.type)
+        elif self.type == PipelineNodeBuilder.EVENT_HUBS_READER:
+            task = EvenHubsReader(self.name, self.type)
+        elif self.type == PipelineNodeBuilder.DELTA_WRITER:
+            task = DeltaWriter(self.name, self.type)
+        elif self.type == PipelineNodeBuilder.STREAM_CONSOLE_WRITER:
+            task = ConsoleWriter(self.name, self.type)
         else:
             raise EtlBuilderException(" Invalid Param {}".format(str(self.type)))
 
@@ -134,4 +136,6 @@ class PipelineNodeBuilder:
         node = PipelineNode(self.name, task)
         return node
 
-
+    def build_custom_node(task_obj):
+        task_obj.task_status = PipelineNodeStatus.NONE
+        return PipelineNode(task_obj.task_name, task_obj)

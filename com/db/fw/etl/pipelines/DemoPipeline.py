@@ -8,9 +8,10 @@ import logging
 from com.db.fw.etl.core.common.Constants import COMMON_CONSTANTS
 from com.db.fw.etl.core.common.DeltaStatLogger import IOService
 
-spark = SparkSession.builder.config("spark.jar.packages","com.microsoft.azure:azure-eventhubs-spark_2.12:2.3.21").getOrCreate()
-
+# spark = SparkSession.builder.getOrCreate()
+spark = None
 # schema = get_poc_payload_schema(spark)
+
 
 events_reader = PipelineNodeBuilder() \
     .set_name("event_reader") \
@@ -19,10 +20,6 @@ events_reader = PipelineNodeBuilder() \
                       "Endpoint=sb://pvnevntdbns.servicebus.windows.net/;SharedAccessKeyName=DBManageSharedAccessKey;SharedAccessKey=LHtOrPKZR7OWnGDtUJ8krCruazpxw7E5l+EOnBs5/kE=;") \
     .add_input_option("EVENT_HUBS_NAME", "tata_event_hub") \
     .build()
-
-console_writer = PipelineNodeBuilder()\
-    .set_name("console_writer")\
-    .set_type(PipelineNodeBuilder.STREAM_CONSOLE_WRITER).build()
 
 base_event_parse_processor = PipelineNodeBuilder.build_custom_node(
     TDBaseEventParseProcessor("base_event_parse_processor",
@@ -57,9 +54,11 @@ io_service = IOService()
 logger = logging.getLogger(__name__)
 
 pipeline = PipelineBuilder(spark, pipeline_name, logger, pip_id, io_service) \
-    .add_node(events_reader)\
-    .add_node_after(events_reader.name,console_writer)\
-    .build()
+    .add_node(events_reader) \
+    .add_node_after(events_reader.name, base_event_parse_processor) \
+    .add_node_after(base_event_parse_processor.name, master_table_tcp_payment_processor) \
+    .add_node_after(master_table_tcp_payment_processor.name, master_table_tcp_payment_writer) \
+    .add_node_after(base_event_parse_processor.name, history_with_dq_check_processor) \
+    .add_node_after(history_with_dq_check_processor.name, foreach_writer_for_multi_location_writer).build()
 
-
-pipeline.start()
+# pipeline.start()

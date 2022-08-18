@@ -35,3 +35,17 @@ class DeltaWriter(BaseWriter):
         else:
             raise InsufficientParamsException(
                 self.task_name, self.pipeline_name, str(self.input_options))
+
+
+
+class ConsoleWriter(BaseWriter):
+    def __init__(self, task_name, type):
+        Task.__init__(self, task_name, type)
+
+    def execute(self):
+        final_df = self.get_input_dataframe()
+
+
+        final_df.writeStream.format("console")\
+            .outputMode("append").start() \
+            .awaitTermination()

@@ -3,8 +3,8 @@ import json
 from com.db.fw.etl.core.Exception.EtlExceptions import EtlBuilderException
 from com.db.fw.etl.core.Pipeline.PipelineGraph import PipelineGraph, Pipeline, PipelineNode, PipelineNodeStatus
 from com.db.fw.etl.core.Dummy.DummyTasks import *
-from com.db.fw.etl.core.readers.CommonReaders import EvenHubsReader
-from com.db.fw.etl.core.writer.CommonWriters import DeltaWriter
+from com.db.fw.etl.core.readers.CommonStreamReaders import EvenHubsReader
+from com.db.fw.etl.core.writer.CommonWriters import DeltaWriter, ConsoleWriter
 
 
 class PipelineBuilder:
@@ -71,6 +71,10 @@ class PipelineNodeBuilder:
     EVENT_HUBS_READER = "event_hubs_reader"
     DELTA_WRITER = "delta_writer"
 
+    STREAM_CONSOLE_WRITER = "stream_console_writer"
+
+
+
     def __init__(self):
         self.name = None
         self.input_options = {}
@@ -121,6 +125,8 @@ class PipelineNodeBuilder:
             task = EvenHubsReader(self.name, self.type)
         elif self.type == PipelineNodeBuilder.DELTA_WRITER:
             task = DeltaWriter(self.name, self.type)
+        elif self.type == PipelineNodeBuilder.STREAM_CONSOLE_WRITER:
+            task = ConsoleWriter(self.name, self.type)
         else:
             raise EtlBuilderException(" Invalid Param {}".format(str(self.type)))
 

@@ -1,6 +1,6 @@
 from pyspark.sql.functions import from_json, explode
 
-from com.db.fw.etl.TataDigital.TataUtilities import get_poc_payload_schema
+from com.db.fw.etl.TataDigital.TDUtilities import get_poc_payload_schema
 from com.db.fw.etl.core.common.Task import Task
 from com.db.fw.etl.core.processor.CommonProcessors import BaseProcessor
 

@@ -58,7 +58,7 @@ class Task(threading.Thread, ABC):
     def add_option_values(self, input_options):
         self.input_options = input_options
 
-    def get_option_value(self, key, value):
+    def get_option_value(self, key):
         self.input_options.get(key)
 
     def set_output_dataframe(self, df):

@@ -26,7 +26,7 @@ class COMMON_CONSTANTS:
 
     INFO = "INFO"
     WARN = "WARN"
-    ERROR = "ERROR"
+
 
 
 

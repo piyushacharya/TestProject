@@ -13,7 +13,7 @@ from com.db.fw.etl.core.Exception.EtlExceptions import PipelineException
 from com.db.fw.etl.core.common.Commons import Commons
 
 from com.db.fw.etl.core.common.Constants import COMMON_CONSTANTS as Constants
-
+import traceback
 
 
 class PipelineNodeStatus:
@@ -88,10 +88,11 @@ class PipelineGraph:
     def all_nodes_done(self):
         status = True
         for v in self.nodes.values():
-            if v.status == PipelineNodeStatus.ERROR:
+            if v.status == Constants.ERROR:
                 # logger.info("Got error , Shutting down the system "+v.getTask().taskName)
-                print("Got error , Shutting down the system " + v.getTask().task_name)
+                print(" all_nodes_done - Got error , Shutting down the system , got error is Task {} ".format(v.getTask().task_name)  )
                 status = True
+
                 raise PipelineException(
                     "Got error , Shutting down the system {} - {}".format(v.getTask().task_name, v.getTask().error_msg))
 
@@ -230,7 +231,7 @@ class Pipeline:
 
                         task.inputDataframe = inputResultMap
                     task.start()
-                    time.sleep(5)
+                    time.sleep(2)
 
                 nodes = self.pipelineGraph.get_nodes_for_execution()
 
@@ -239,4 +240,6 @@ class Pipeline:
         except Exception as e:
             status_time = Commons.get_curreny_time()
             run = False
+            print("Exception occurred in Pipeline {} ".format(str(e)))
+            print("Exception Source " + traceback.format_exc())
             self.io_service.store_pipeline_status(self.name, self.pipelineid, Constants.ERROR_FINISHED, status_time, e)

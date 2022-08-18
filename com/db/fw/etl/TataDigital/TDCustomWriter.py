@@ -4,6 +4,7 @@ from pyspark.sql.functions import *
 from pyspark.sql import *
 from com.db.fw.etl.core.writer.CommonWritingUtils import *
 from com.db.fw.etl.core.common.Constants import COMMON_CONSTANTS
+import psycopg2
 
 
 
@@ -78,7 +79,7 @@ class ForEachBatchWriter(BaseWriter):
       member_id_present=EXCLUDED.member_id_present,cust_hash_present=EXCLUDED.cust_hash_present"""
         curs_merge.execute(sql_string)
 
-    def process_partition_postgres(self,partition):
+    def process_partition_postgres(self,partition,postgres_host,postgres_user,postgres_pwd,postgres_database):
         conn = psycopg2.connect(host=postgres_host,
                                 user=postgres_user, password=postgres_pwd, database=postgres_database)
         dbc_merge = conn.cursor()

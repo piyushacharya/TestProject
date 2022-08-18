@@ -34,7 +34,7 @@ history_with_dq_check_processor = PipelineNodeBuilder.build_custom_node(
                                 PipelineNodeBuilder.CUSTOM_PROCESSOR))
 
 master_table_tcp_payment_writer = PipelineNodeBuilder() \
-    .set_name("master_table_tcp_payment_writer") \
+    .set_name("master_table_tastcp_payment_writer") \
     .set_type(PipelineNodeBuilder.DELTA_WRITER) \
     .add_input_option("mode", "append") \
     .add_input_option(COMMON_CONSTANTS.DB_NAME, "tata_poc") \

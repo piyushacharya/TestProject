@@ -4,7 +4,7 @@ from datetime import datetime
 from com.db.fw.etl.core.common.Commons import Commons
 from com.db.fw.etl.core.Pipeline.PipelineGraph import PipelineNodeStatus
 from com.db.fw.etl.core.common.Constants import COMMON_CONSTANTS as Constants
-
+import traceback
 
 class Task(threading.Thread, ABC):
 
@@ -83,7 +83,8 @@ class Task(threading.Thread, ABC):
 
         self.update_task_status(status)
         status_time = Commons.get_curreny_time()
-        self.io_service.store_task_status(self.pipeline_name, self.pipeline_uid, self.task_name, self.task_status,
+        if ex is not None:
+            self.io_service.store_task_status(self.pipeline_name, self.pipeline_uid, self.task_name, self.task_status,
                                           status_time, ex)
 
         self.log(Constants.INFO, "End update_and_store_status")
@@ -91,21 +92,32 @@ class Task(threading.Thread, ABC):
 
     def run(self):
         try:
+            print("Task Started {} ,  at {}  ,status {} ".format(self.task_name, str(datetime.now()), self.task_status))
             self.log(Constants.INFO, "Start run")
             self.logger.info(
-                "Task started {} ,status {} ,  at {} ".format(self.task_name, datetime.now, self.task_status))
+                "Task started {} ,status {} ,  at {} ".format(self.task_name, datetime.now(), self.task_status))
             self.update_and_store_status(Constants.STARTED, None)
             self.log(Constants.INFO, "Start execute")
             self.execute()
             self.log(Constants.INFO, "End execute")
             self.store_operation_stats()
             self.update_and_store_status(Constants.FINISHED, None)
+
             self.logger.info(
-                "Task started {} ,status {} ,  at {} ".format(self.task_name, datetime.now, self.task_status))
+                "Task started {} ,status {} ,  at {} ".format(self.task_name, str(datetime.now()), self.task_status))
             self.log(Constants.INFO, "End run")
+            print("Task End {} ,  at {}  ,status {} ".format(self.task_name, str(datetime.now()), self.task_status))
         except Exception as ex:
-            self.logger.error("Task fail {} ".format(str(ex)))
+            print("** Exception Occurred {} {} {}".format(self.task_name, self.task_status, str(ex)))
+            print("Exception Source " + traceback.format_exc())
             self.update_and_store_status(Constants.ERROR, ex)
+            self.logger.error("Task fail {} {} {} ".format(self.task_name, self.task_status , str(ex)))
+        except:
+            print("*** Exception Occurred in except {} {} {}".format(self.task_name, self.task_status))
+            print("*** Exception Source " + traceback.format_exc())
+            self.update_and_store_status(Constants.ERROR, None)
+            self.logger.error("Task fail in except {} {} {} ".format(self.task_name, self.task_status))
+
 
     def encode(self):
         return vars(self)

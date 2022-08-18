@@ -5,6 +5,7 @@ from pyspark import *
 
 
 spark = SparkSession.builder.getOrCreate()
+
 schemaDF = spark.read.json("/FileStore/piyush/jsons/piyush.json");
 schema = schemaDF.schema
 schemaDF.show(10)

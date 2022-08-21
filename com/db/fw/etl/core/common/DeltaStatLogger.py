@@ -43,12 +43,20 @@ class IOService:
         self.spark.sql(sql_stmt)
 
     def store_operational_stats(self, pipeline_instance_id, pipeline_name, task_name, stats ,time):
-        if IOService.IO_SERVICE_STATUS == False :
-            return None;
+        # if IOService.IO_SERVICE_STATUS == False :
+        #     return None;
+        print("store_operation_stats I am here inside")
+        INSERT_STMT = "INSERT INTO  tata_poc.operational_stats VALUES "
+        comma_sept_for_values =""
         for stat_name , state_value in stats.items():
-            sql_stmt = "INSERT INTO  tata_poc.operational_stats  VALUES( '{}', '{}','{}','{}','{}','{}')".format(
-                pipeline_instance_id, pipeline_name, task_name, stat_name, state_value, time)
-            self.spark.sql(sql_stmt)
+
+            values_stmt  = "( '{}', '{}','{}','{}','{}','{}') {} ".format(
+                pipeline_instance_id, pipeline_name, task_name, stat_name, state_value, time,comma_sept_for_values)
+            comma_sept_for_values = ","
+
+            INSERT_STMT = INSERT_STMT + values_stmt
+
+        self.spark.sql(INSERT_STMT)
 
 
     def store_pipeline_metadata(self, out_pip_id, out_name, out_jsons):

@@ -4,9 +4,12 @@ from datetime import datetime
 from com.db.fw.etl.core.common.Commons import Commons
 from com.db.fw.etl.core.Pipeline.PipelineGraph import PipelineNodeStatus
 from com.db.fw.etl.core.common.Constants import COMMON_CONSTANTS as Constants
+
 import traceback
 
 class Task(threading.Thread, ABC):
+
+
 
     def __init__(self, task_name, type):
         threading.Thread.__init__(self)
@@ -69,7 +72,9 @@ class Task(threading.Thread, ABC):
 
     def store_operation_stats(self):
         self.log(Constants.INFO,"Start store_operation_stats" )
+
         status_time = Commons.get_curreny_time()
+
         if len(self.task_facts) > 0:
             self.io_service.store_operational_stats(self.pipeline_uid, self.pipeline_name, self.task_name,
                                                     self.task_facts, status_time)
@@ -92,7 +97,7 @@ class Task(threading.Thread, ABC):
 
     def run(self):
         try:
-            print("Task Started {} ,  at {}  ,status {} with Params {} ".format(self.task_name, str(datetime.now()), self.task_status, self.input_options))
+            Commons.printInfoMessage("Task Started {} ,  at {}  ,status {} with Params {} ".format(self.task_name, str(datetime.now()), self.task_status, self.input_options))
             self.log(Constants.INFO, "Start run")
             self.logger.info(
                 "Task started {} ,status {} ,  at {} ".format(self.task_name, datetime.now(), self.task_status))
@@ -106,15 +111,15 @@ class Task(threading.Thread, ABC):
             self.logger.info(
                 "Task started {} ,status {} ,  at {} ".format(self.task_name, str(datetime.now()), self.task_status))
             self.log(Constants.INFO, "End run")
-            print("Task End {} ,  at {}  ,status {} ".format(self.task_name, str(datetime.now()), self.task_status))
+            Commons.printInfoMessage("Task End {} ,  at {}  ,status {} ".format(self.task_name, str(datetime.now()), self.task_status))
         except Exception as ex:
-            print("** Exception Occurred {} {} {}".format(self.task_name, self.task_status, str(ex)))
-            print("Exception Source " + traceback.format_exc())
+            Commons.printErrorMessage("** Exception Occurred {} {} {}".format(self.task_name, self.task_status, str(ex)))
+            Commons.printErrorMessage("Exception Source " + traceback.format_exc())
             self.update_and_store_status(Constants.ERROR, ex)
             self.logger.error("Task fail {} {} {} ".format(self.task_name, self.task_status , str(ex)))
         except:
-            print("*** Exception Occurred in except {} {} {}".format(self.task_name, self.task_status))
-            print("*** Exception Source " + traceback.format_exc())
+            Commons.printErrorMessage("*** Exception Occurred in except {} {} {}".format(self.task_name, self.task_status))
+            Commons.printErrorMessage("*** Exception Source " + traceback.format_exc())
             self.update_and_store_status(Constants.ERROR, None)
             self.logger.error("Task fail in except {} {} {} ".format(self.task_name, self.task_status))
 

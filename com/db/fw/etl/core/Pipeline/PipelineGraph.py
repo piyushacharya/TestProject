@@ -90,7 +90,7 @@ class PipelineGraph:
         for v in self.nodes.values():
             if v.status == Constants.ERROR:
                 # logger.info("Got error , Shutting down the system "+v.getTask().taskName)
-                print(" all_nodes_done - Got error , Shutting down the system , got error is Task {} ".format(v.getTask().task_name)  )
+                Commons.printInfoMessage(" all_nodes_done - Got error , Shutting down the system , got error is Task {} ".format(v.getTask().task_name)  )
                 status = True
 
                 raise PipelineException(
@@ -240,7 +240,7 @@ class Pipeline:
         except Exception as e:
             status_time = Commons.get_curreny_time()
             run = False
-            print("Exception occurred in Pipeline {} ".format(str(e)))
-            print("Exception Source " + traceback.format_exc())
+            Commons.printErrorMessage("Exception occurred in Pipeline {} ".format(str(e)))
+            Commons.printErrorMessage("Exception Source " + traceback.format_exc())
             self.io_service.store_pipeline_status(self.name, self.pipelineid, Constants.ERROR_FINISHED, status_time, e)
             raise PipelineException("Pipeline STOPPED due to Error !!!")

@@ -48,6 +48,7 @@ class HistoryWithDQCheckProcessorNotebook(Task):
     def execute(self):
         payloadParsedDf = self.get_input_dataframe()
 
+
         payloadParsedDf = payloadParsedDf.selectExpr("data.merchantOrderId AS source_order_detail_id",
                                                      "data.merchantOrderId AS source_order_header_id",
                                                      "data.custId AS customer_hash",

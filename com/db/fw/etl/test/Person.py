@@ -72,12 +72,20 @@
 # print ("Partial JSON")
 # print (json.dumps(doc.identity.addr.reprJSON(), cls=ComplexEncoder))
 # print("-------------------------------")
+# #
+# from com.db.fw.etl.core.common.DeltaStatLogger import IOService
+# import json
+# store =  IOService()
+# pipeline_id ,pipeline_name ,node_defination = store.get_pipeline_metadata("my_dummy_graph","sample")
+# nodes = json.loads(node_defination)
+# print(nodes)
 #
-from com.db.fw.etl.core.common.DeltaStatLogger import IOService
-import json
-store =  IOService()
-pipeline_id ,pipeline_name ,node_defination = store.get_pipeline_metadata("my_dummy_graph","sample")
-nodes = json.loads(node_defination)
-print(nodes)
+#
+
+from datetime import datetime, timedelta
 
 
+print(datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
+timedelta(hours=0, minutes=50)
+d = datetime.now()  - timedelta(hours=0, minutes=50)
+print(d.strftime("%Y-%m-%dT%H:%M:%S.%fZ"))

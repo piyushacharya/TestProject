@@ -38,5 +38,6 @@ com/db/fw/etl/pipelines/__init__.py
 com/db/fw/etl/test/Hello.py
 com/db/fw/etl/test/Person.py
 com/db/fw/etl/test/TataPoc.py
+com/db/fw/etl/test/Temp.py
 com/db/fw/etl/test/TestDummyPipeline.py
 com/db/fw/etl/test/__init__.py

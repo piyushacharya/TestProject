@@ -243,3 +243,4 @@ class Pipeline:
             print("Exception occurred in Pipeline {} ".format(str(e)))
             print("Exception Source " + traceback.format_exc())
             self.io_service.store_pipeline_status(self.name, self.pipelineid, Constants.ERROR_FINISHED, status_time, e)
+            raise PipelineException("Pipeline STOPPED due to Error !!!")

@@ -1,34 +1,40 @@
 from com.db.fw.etl.core.common.Constants import *
 from pyspark.sql import SparkSession
 
-def delta_insert( df, options, mode ):
+
+def delta_insert(spark, df, options, mode):
+
+
+
     db_name = options.get(COMMON_CONSTANTS.DB_NAME)
     table_name = options.get(COMMON_CONSTANTS.TABLE_NAME)
-
     input_options = options.get(COMMON_CONSTANTS.OPTIONS)
-
-
-
     writer_type = options.get(COMMON_CONSTANTS.WRITER_TYPE)
 
+    print ("delta_insert {} ".format(str(options)))
 
     if writer_type is not None and writer_type.upper() == "STREAM":
 
+        print("******** Inside Stream ******")
+
         df_writer = df.writeStream \
             .format("delta") \
-            .mode("append")
+            .outputMode("append")
 
-        check_point = options.get(COMMON_CONSTANTS.CHECK_POINT_LOCATION,None)
+        check_point = options.get(COMMON_CONSTANTS.CHECK_POINT_LOCATION, None)
         if check_point is not None:
-            df_writer.option("checkpointLocation" ,check_point)
+            df_writer = df_writer.option("checkpointLocation", check_point)
 
         trigger_time = options.get(COMMON_CONSTANTS.TRIGGER_TIME, None)
-        if trigger_time is not None :
-            df_writer.trigger(continuous=str(trigger_time))
+        if trigger_time is not None:
+            df_writer = df_writer.trigger(processingTime=str(trigger_time))
 
         df_writer.toTable("{}.{}".format(db_name, table_name))
 
     else:
+
+        print("******** Inside Batch ******")
+
         df_writer = df.write \
             .format("delta") \
             .mode(mode)
@@ -36,7 +42,7 @@ def delta_insert( df, options, mode ):
         if COMMON_CONSTANTS.OPTIONS in options.keys():
             df_writer = df_writer.options(input_options)
 
-        df_writer.save("{}.{}".format(db_name, table_name))
+        df_writer.saveAsTable("{}.{}".format(db_name, table_name))
 
 
 def delta_delete(spark, df, options):
@@ -50,7 +56,6 @@ def delta_delete(spark, df, options):
         sql = sql + "Where {}".format(where_condition)
 
     spark.sql(sql)
-
 
 
 def delta_update(spark, df, options):
@@ -74,52 +79,50 @@ def delta_update(spark, df, options):
     INSERT (column1 [, ...] ) VALUES (value1 [, ...])
     """
 
+
 def delta_merge(spark, df, options):
-
-
-    source= COMMON_CONSTANTS.upper_Lower_random_string(15)
+    source = COMMON_CONSTANTS.upper_Lower_random_string(15)
     df.createOrReplaceTempView(source)
 
-    db_name = options.get(COMMON_CONSTANTS.DB_NAME)
-    table_name = options.get(COMMON_CONSTANTS.TABLE_NAME)
+    db_name = options.get("fact_db_name")
+    table_name = options.get("fact_table_name")
     merge_condition = options.get(COMMON_CONSTANTS.MERGE_CONDITION)
 
-    target = "{}.{}".format(db_name,table_name)
-    merge_condition=  "".join(merge_condition).format(target,source,target,source)
+    target = "{}.{}".format(db_name, table_name)
+    merge_condition = "".join(merge_condition).format(target, source, target, source)
 
     do_update = options.get(COMMON_CONSTANTS.DO_UPDATE)
-    do_delete =  options.get(COMMON_CONSTANTS.DO_DELETE)
+    do_delete = options.get(COMMON_CONSTANTS.DO_DELETE)
     do_insert = options.get(COMMON_CONSTANTS.DO_INSERT)
 
+    print("Merge params " + str(options))
 
-    merge_sql =" MERGE INTO {}.{} {}".format(db_name,table_name,"target")
-    merge_sql = merge_sql.join( " USING {} {} ON ".format(source,"source" , merge_condition))
+    merge_sql = " MERGE INTO {}.{} {}".format(db_name, table_name, "target")
+    merge_sql = merge_sql + " USING {} {} ON {} ".format(source, "source", merge_condition)
 
     # column selection is pending
-    if do_update == "true":
+    if do_update is not None:
         update_condition = ""
         if COMMON_CONSTANTS.UPDATE_CONDITION in options.keys():
-            update_condition = "AND ".options.get(COMMON_CONSTANTS.UPDATE_CONDITION)
-        merge_sql = merge_sql.join(" WHEN MATCHED {} THEN UPDATE * ".format(update_condition))
+            update_condition = "AND " + options.get(COMMON_CONSTANTS.UPDATE_CONDITION)
+        merge_sql = merge_sql + " WHEN MATCHED {} THEN UPDATE SET * ".format(update_condition)
 
-
-    if do_delete == "true":
+    if do_delete is not None:
         delete_condition = ""
         if COMMON_CONSTANTS.DELETE_CONDITION in options.keys():
-            delete_condition = "AND ".options.get(COMMON_CONSTANTS.DELETE_CONDITION)
-        merge_sql = merge_sql.join(" WHEN MATCHED {} THEN DELETE ".format(delete_condition))
+            delete_condition = "AND " + options.get(COMMON_CONSTANTS.DELETE_CONDITION)
+        merge_sql = merge_sql + " WHEN MATCHED {} THEN DELETE ".format(delete_condition)
 
     # column selection is pending
-    if do_insert == "true":
-        merge_sql = merge_sql.join(" WHEN NOT MATCHED THEN UPDATE * ")
+    if do_insert is not None:
+        merge_sql = merge_sql + " WHEN NOT MATCHED THEN INSERT * "
 
-    print ("SQL {} ".format(merge_sql))
+    print("SQL {} ".format(merge_sql))
 
-    output= spark.sql(merge_sql)
+    output = None
+
+    output = spark.sql(merge_sql)
 
     spark.catalog.dropTempView(source)
 
     return (output)
-
-
-

@@ -33,6 +33,13 @@ history_with_dq_check_processor = PipelineNodeBuilder.build_custom_node(
     HistoryWithDQCheckProcessor("history_with_dq_check_processor",
                                 PipelineNodeBuilder.CUSTOM_PROCESSOR))
 
+master_table_delta_writer = PipelineNodeBuilder() \
+    .set_name("master_table_delta_writer") \
+    .set_type(PipelineNodeBuilder.DELTA_WRITER)\
+    .add_input_option("db_name","tata_poc")\
+    .add_input_option("table_name","master_table")\
+    .build()
+
 master_table_tcp_payment_writer = PipelineNodeBuilder() \
     .set_name("master_table_tastcp_payment_writer") \
     .set_type(PipelineNodeBuilder.DELTA_WRITER) \
@@ -45,7 +52,40 @@ master_table_tcp_payment_writer = PipelineNodeBuilder() \
 
 forEachBatchWriterTask = ForEachBatchWriter("foreach_writer_for_multi_location_writer",
                                             PipelineNodeBuilder.CUSTOM_PROCESSOR)
+
 forEachBatchWriterTask.add_option_value("checkpointLocation", "/tmp/tata_poc/check_points/foreach")
+forEachBatchWriterTask.add_option_value("part_count", "")
+forEachBatchWriterTask.add_option_value("postgres_host", "yatin-tatadigital-demo.postgres.database.azure.com")
+forEachBatchWriterTask.add_option_value("postgres_user", "yatin_kumar@yatin-tatadigital-demo")
+forEachBatchWriterTask.add_option_value("postgres_pwd", "tata123#")
+forEachBatchWriterTask.add_option_value("postgres_database", "tdpoc")
+forEachBatchWriterTask.add_option_value("history_db_name", "tata_poc")
+forEachBatchWriterTask.add_option_value("history_table_name", "history")
+forEachBatchWriterTask.add_option_value("fact_db_name", "tata_poc")
+forEachBatchWriterTask.add_option_value("fact_table_name", "fact_table")
+forEachBatchWriterTask.add_option_value("merge_condition", "fact.customer_hash = src.customer_hash AND fact.source_order_detail_creation_date = src.source_order_detail_creation_date")
+forEachBatchWriterTask.add_option_value("do_update", True)
+forEachBatchWriterTask.add_option_value("do_insert", True)
+forEachBatchWriterTask.add_option_value("update_condition", "fact.source_order_detail_updation_date < src.source_order_detail_updation_date")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 foreach_writer_for_multi_location_writer = PipelineNodeBuilder.build_custom_node(forEachBatchWriterTask)
 
 pipeline_name = "tata_poc_pipeline"

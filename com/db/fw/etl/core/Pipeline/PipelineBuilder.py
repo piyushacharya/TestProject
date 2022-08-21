@@ -133,6 +133,8 @@ class PipelineNodeBuilder:
             task = ConsoleWriter(self.name, self.type)
         elif self.type == PipelineNodeBuilder.EVENT_HUBS_BATCH_READER:
             task = EvenHubsBatchReader(self.name, self.type)
+        elif self.type == PipelineNodeBuilder.EVENT_HUBS_BATCH_READER:
+            task = EvenHubsBatchReader(self.name, self.type)
         else:
             raise EtlBuilderException(" Invalid Param {}".format(str(self.type)))
 

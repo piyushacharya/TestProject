@@ -59,7 +59,7 @@ class Task(threading.Thread, ABC):
         self.input_options = input_options
 
     def get_option_value(self, key):
-        self.input_options.get(key)
+        self.input_options.get(key,None)
 
     def set_output_dataframe(self, df):
         self.output_dataframe = df
@@ -92,12 +92,12 @@ class Task(threading.Thread, ABC):
 
     def run(self):
         try:
-            print("Task Started {} ,  at {}  ,status {} ".format(self.task_name, str(datetime.now()), self.task_status))
+            print("Task Started {} ,  at {}  ,status {} with Params {} ".format(self.task_name, str(datetime.now()), self.task_status, self.input_options))
             self.log(Constants.INFO, "Start run")
             self.logger.info(
                 "Task started {} ,status {} ,  at {} ".format(self.task_name, datetime.now(), self.task_status))
             self.update_and_store_status(Constants.STARTED, None)
-            self.log(Constants.INFO, "Start execute")
+            self.log(Constants.INFO, "Start execute with param {} ".format(self.input_options)  )
             self.execute()
             self.log(Constants.INFO, "End execute")
             self.store_operation_stats()

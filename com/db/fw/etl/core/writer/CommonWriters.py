@@ -18,9 +18,9 @@ class DeltaWriter(BaseWriter):
 
     def execute(self):
 
-        mode = self.get_option_value("mode")
-        inputDf = self.get_input_dataframe();
+        mode = self.input_options.get("mode",None)
 
+        inputDf = self.get_input_dataframe();
 
         if mode == "append":
             delta_insert(self.spark, inputDf, self.input_options,COMMON_CONSTANTS.APPEND)
@@ -44,9 +44,12 @@ class ConsoleWriter(BaseWriter):
 
     def execute(self):
         final_df = self.get_input_dataframe()
-
-
-        final_df.show(10,truncate=False)
+        if  final_df == None or  final_df.isStreaming == True :
+            pass
+        else:
+            final_df.show(10,truncate=False)
 
             # .writeStream.format("console")\
             # .outputMode("append").start()
+
+

@@ -11,7 +11,7 @@ class COMMON_CONSTANTS:
     MERGE_CONDITION = "merge_condition"
     UPDATE_CONDITION = "update_condition"
     DELETE_CONDITION = "delete_condition"
-    CHECK_POINT_LOCATION = "check_point_location"
+    CHECK_POINT_LOCATION = "checkpointLocation"
     TRIGGER_TIME = "trigger_time"
     WRITER_TYPE= "writer_type"
     MERGE_CONDITION = "merge_condition"

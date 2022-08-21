@@ -7,18 +7,12 @@ from pyspark import *
 spark = SparkSession.builder.getOrCreate()
 
 schemaDF = spark.read.json("/FileStore/piyush/jsons/piyush.json");
-schema = schemaDF.schema
-schemaDF.show(10)
-
-
-
-df = spark.readStream.schema(schema).json("/FileStore/piyush/jsons/")
-wordCounts = df.groupBy("name").count()
-wordCounts = wordCounts \
-    .writeStream \
-    .outputMode("complete") \
-    .format("console") \
+check_point = None
+tataFactStreamingQuery = schemaDF.writeStream.option("checkpointLocation", check_point)\
+    .queryName("Tata Fact Pipeline Events")\
+    .outputMode("append")\
+    .trigger(processingTime='60 seconds')\
+    .foreachBatch(factForEachBatchWriter)\
     .start()
 
-# df = spark.readStream.schema(schema).json("dbfs:/FileStore/piyush/jsons/")
-# df.writeStream.format("delta").option("checkpointLocation", "/tmp/checkpoint/t1").toTable("tata_poc.json_table")
+

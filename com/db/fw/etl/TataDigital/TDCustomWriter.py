@@ -246,8 +246,8 @@ class ForEachBatchWriter_test(BaseWriter):
 
     def write_to_history(self, df, input_options, batch_id):
         # start work on this
-        db_name = "history_db_name"
-        table_name = "history_table_name"
+        db_name = input_options.get("history_db_name",None)
+        table_name = input_options.get("history_table_name",None)
 
         input_options[COMMON_CONSTANTS.DB_NAME] =input_options.get("history_db_name",None)
         input_options[COMMON_CONSTANTS.TABLE_NAME] = input_options.get("history_table_name",None)

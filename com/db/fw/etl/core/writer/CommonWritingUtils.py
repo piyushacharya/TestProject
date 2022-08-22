@@ -3,9 +3,6 @@ from pyspark.sql import SparkSession
 
 
 def delta_insert(spark, df, options, mode):
-
-
-
     db_name = options.get(COMMON_CONSTANTS.DB_NAME)
     table_name = options.get(COMMON_CONSTANTS.TABLE_NAME)
     input_options = options.get(COMMON_CONSTANTS.OPTIONS)
@@ -33,16 +30,16 @@ def delta_insert(spark, df, options, mode):
 
     else:
 
-        print("******** Inside Batch ******")
+        print(f"******** Inside Batch ****** {db_name} {table_name} {mode}")
 
         df_writer = df.write \
             .format("delta") \
             .mode(mode)
 
-        if COMMON_CONSTANTS.OPTIONS in options.keys():
-            df_writer = df_writer.options(input_options)
+        # if COMMON_CONSTANTS.OPTIONS in options.keys():
+        #     df_writer = df_writer.options(input_options)
 
-        df_writer.saveAsTable("{}.{}".format(db_name, table_name))
+        df_writer.option("mergeSchema", "true").saveAsTable("{}.{}".format(db_name, table_name))
 
 
 def delta_delete(spark, df, options):

@@ -74,7 +74,11 @@ class EvenHubsReader(BaseReader):
                 "enqueuedTime": endTime,
                 "isInclusive": True
             }
+
+            ehConf["maxEventsPerTrigger"] = 10000
             ehConf["eventhubs.endingPosition"] = json.dumps(endingEventPosition)
+
+
 
         print("**** Configuration **** {}".format(str(ehConf)))
 

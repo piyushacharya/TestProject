@@ -1,11 +1,6 @@
 import json
 from datetime import datetime
 
-from com.db.fw.etl.core.common import Constants
-import logging
-
-from com.db.fw.etl.core.common.Task import Task
-
 
 class Commons:
 
@@ -17,11 +12,11 @@ class Commons:
         curr_time = x.strftime("%Y-%m-%d %H:%M:%S.%f")
         return curr_time
 
-    def printInfoMessage(self,message):
-        if Task.DEBUG_ON:
+    def printInfoMessage(message):
+        if Commons.DEBUG_PRINT_ON :
             print(message)
 
 
-    def printErrorMessage(self,message):
-        if Task.ERROR_PRINT_ON:
+    def printErrorMessage(message):
+        if Commons.ERROR_PRINT_ON:
             print(message)

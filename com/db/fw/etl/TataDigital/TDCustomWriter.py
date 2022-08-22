@@ -1,4 +1,6 @@
+import datetime
 import json
+import time
 
 from com.db.fw.etl.TataDigital.TDUtilities import PostgresWriterService
 from com.db.fw.etl.core.common.Commons import Commons
@@ -171,40 +173,43 @@ class ForEachBatchWriter_test(BaseWriter):
     def get_latest_snapshot_rec(self, df, batch_id):
         df.createOrReplaceGlobalTempView("factView_{}".format(batch_id))
         latest_snaphot_df = self.spark.sql(
-            f"""SELECT*,row_number() over (partition by customer_hash order by source_order_detail_updation_date desc) row_number, CASE WHEN (payOrderId % 2) = 0 THEN 'loyal' ELSE 'non-loyal' END customer_type FROM global_temp.factView_{batch_id} WHERE member_id_present = true AND cust_hash_present = true """).where(
+            f"""SELECT*,row_number() over (partition by customer_hash order by source_order_detail_updation_date desc) row_number, CASE WHEN (payOrderId % 2) = 0 THEN 'loyal' ELSE 'non-loyal' END customer_type, mod(abs(hash(customer_hash)),1000) customer_bucket FROM global_temp.factView_{batch_id} WHERE member_id_present = true AND cust_hash_present = true """).where(
             "row_number = 1").drop("row_number")
 
         return latest_snaphot_df
 
     def multi_location_write(self, history_df, batch_id):
         history_df.persist()
-        params = history_df.select("param").first()[0]
-        print("from multi_location_write params : {}".format(str(params)))
+        if len(history_df.head(1)) > 0 :
+            params = history_df.select("param").first()[0]
+            print("from multi_location_write params : {}".format(str(params)))
 
-        input_options = json.loads(params)
+            input_options = json.loads(params)
 
-        print("from multi_location_write input_options : {}".format(str(input_options)))
+            print("from multi_location_write input_options : {}".format(str(input_options)))
 
-        history_df = history_df.drop("param")
-        self.write_to_history(history_df, input_options, batch_id)
-        print("history_df count {}".format(history_df.count()))
 
-        latest_snapshot_df = self.get_latest_snapshot_rec(history_df, 1)
-        print("latest_snapshot_df count {}".format(latest_snapshot_df.count()))
+            batch_id = int(time.time() * 1000)
 
-        self.merge_to_fact(latest_snapshot_df, input_options, batch_id)
+            history_df = history_df.drop("param")
+            self.write_to_history(history_df, input_options, batch_id)
+            print("history_df count {}".format(history_df.count()))
 
-        pgWriter = PostgresWriterService()
-        pgWriter.upsert(latest_snapshot_df)
-        self.set_output_dataframe(latest_snapshot_df)
+            latest_snapshot_df = self.get_latest_snapshot_rec(history_df, batch_id)
+            print("latest_snapshot_df count {}".format(latest_snapshot_df.count()))
 
-        self.add_all_operational_stats(history_df, latest_snapshot_df)
+            self.merge_to_fact(latest_snapshot_df, input_options, batch_id)
+
+            pgWriter = PostgresWriterService()
+            pgWriter.upsert(latest_snapshot_df)
+            self.set_output_dataframe(latest_snapshot_df)
+
+            self.add_all_operational_stats(history_df, latest_snapshot_df,batch_id)
 
         history_df.unpersist()
 
-    def add_all_operational_stats(self, history_df, latest_snapshot_df):
+    def add_all_operational_stats(self, history_df, latest_snapshot_df,batch_id):
         io_service = IOService()
-        io_service.store_operational_stats()
         status_time = Commons.get_curreny_time()
 
         facts = {}
@@ -235,30 +240,35 @@ class ForEachBatchWriter_test(BaseWriter):
         io_service.store_operational_stats(self.pipeline_uid,
                                            self.pipeline_name,
                                            self.task_name,
-                                           facts, status_time)
+                                           facts, status_time,batch_id)
 
         pass
 
     def write_to_history(self, df, input_options, batch_id):
         # start work on this
+        db_name = "history_db_name"
+        table_name = "history_table_name"
+
+        input_options[COMMON_CONSTANTS.DB_NAME] =input_options.get("history_db_name",None)
+        input_options[COMMON_CONSTANTS.TABLE_NAME] = input_options.get("history_table_name",None)
 
         if batch_id % 10 == 0:
-            db_name = input_options.get(COMMON_CONSTANTS.DB_NAME, None)
-            table_name = input_options.get(COMMON_CONSTANTS.TABLE_NAME, None)
+            Commons.printInfoMessage( "for write_to_history db name {} table name {} ".format(db_name,table_name) )
             if db_name is not None and table_name is not None:
-                self.spark.sql("{}.{}".format(db_name, table_name))
+                self.spark.sql("OPTIMIZE {}.{}".format(db_name, table_name))
 
         # if (batchId % 101 == 0){spark.sql("optimize events zorder by (eventType)")}
         delta_insert(self.spark, df, input_options, COMMON_CONSTANTS.APPEND)
 
     def merge_to_fact(self, df, input_options, batch_id):
         # start work on this
-        if batch_id % 10 == 0:
-            db_name = input_options.get("fact_db_name", None)
-            table_name = input_options.get("fact_table_name".TABLE_NAME, None)
+        db_name = input_options.get("fact_db_name", None)
+        table_name = input_options.get("fact_table_name", None)
 
+        if batch_id % 10 == 0:
             if db_name is not None and table_name is not None:
-                self.spark.sql("{}.{}".format(db_name, table_name))
+                self.spark.sql("OPTIMIZE {}.{}".format(db_name, table_name))
+
         delta_merge(self.spark, df, input_options)
 
     def execute(self):

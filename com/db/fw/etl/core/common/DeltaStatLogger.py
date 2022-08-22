@@ -1,6 +1,7 @@
 from pyspark.sql import SparkSession
 import uuid
 from com.db.fw.etl.core.Exception.EtlExceptions import InvalidParamsException
+from com.db.fw.etl.core.common.Commons import Commons
 
 
 class IOService:
@@ -42,7 +43,7 @@ class IOService:
                                                                                                                    self.cleanup_msg(str(error)))
         self.spark.sql(sql_stmt)
 
-    def store_operational_stats(self, pipeline_instance_id, pipeline_name, task_name, stats ,time):
+    def store_operational_stats(self, pipeline_instance_id, pipeline_name, task_name, stats ,time,batch_id):
         # if IOService.IO_SERVICE_STATUS == False :
         #     return None;
         print("store_operation_stats I am here inside")
@@ -50,12 +51,13 @@ class IOService:
         comma_sept_for_values =""
         for stat_name , state_value in stats.items():
 
-            values_stmt  = "( '{}', '{}','{}','{}','{}','{}') {} ".format(
-                pipeline_instance_id, pipeline_name, task_name, stat_name, state_value, time,comma_sept_for_values)
+            values_stmt  = "{} ( '{}', '{}','{}','{}','{}','{}',{})  ".format(comma_sept_for_values,
+                pipeline_instance_id, pipeline_name, task_name, stat_name, state_value, time,batch_id)
             comma_sept_for_values = ","
 
             INSERT_STMT = INSERT_STMT + values_stmt
 
+        Commons.printInfoMessage(INSERT_STMT)
         self.spark.sql(INSERT_STMT)
 
 

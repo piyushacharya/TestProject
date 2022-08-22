@@ -22,7 +22,8 @@ class TDBaseEventParseProcessorNotebook(BaseProcessor):
 
 
 
-class MasterProcessorNotebook(BaseProcessor):
+class \
+        MasterProcessorNotebook(BaseProcessor):
     def __init__(self, name, type):
         Task.__init__(self, name, type)
 

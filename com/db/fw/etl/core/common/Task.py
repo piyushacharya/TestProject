@@ -114,7 +114,7 @@ class Task(threading.Thread, ABC):
             Commons.printInfoMessage("Task End {} ,  at {}  ,status {} ".format(self.task_name, str(datetime.now()), self.task_status))
         except Exception as ex:
             Commons.printErrorMessage("** Exception Occurred {} {} {}".format(self.task_name, self.task_status, str(ex)))
-            Commons.printErrorMessage("Exception Source " + traceback.format_exc())
+            Commons.printErrorMessage("Exception Source {}".format(traceback.format_exc()) )
             self.update_and_store_status(Constants.ERROR, ex)
             self.logger.error("Task fail {} {} {} ".format(self.task_name, self.task_status , str(ex)))
         except:

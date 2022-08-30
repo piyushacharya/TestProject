@@ -208,7 +208,33 @@ class ForEachBatchWriter_test(BaseWriter):
 
         history_df.unpersist()
 
-    def add_all_operational_stats(self, history_df, latest_snapshot_df,batch_id):
+    def add_all_operational_stats(self, history_df, latest_snapshot_df, batch_id):
+        io_service = IOService()
+        status_time = Commons.get_curreny_time()
+        facts = {}
+        total_input_rows_for_processing = history_df.count()
+        facts["input_rows"] = total_input_rows_for_processing
+        total_row_for_cs_upsert_postgress = latest_snapshot_df.count()
+        facts["cs_upsert"] = total_row_for_cs_upsert_postgress
+        total_row_for_fact_upsert_delta = latest_snapshot_df.count()
+        facts["fact_upsert"] = total_row_for_fact_upsert_delta
+        loyal_cust_count = latest_snapshot_df.filter("customer_type=='loyal'").count()
+        facts["loyal_cust_count"] = loyal_cust_count
+        non_loyal_count = latest_snapshot_df.filter("customer_type=='non-loyal'").count()
+        facts["non_loyal_count"] = non_loyal_count
+        member_dim_present_count = history_df.filter("member_id_present=='true'").count()
+        facts["member_dim_present_count"] = member_dim_present_count
+        cust_dim_present_count = history_df.filter("cust_hash_present=='true'").count()
+        facts["member_dim_present_count"] = cust_dim_present_count
+        member_and_cust_dim_present_count = history_df.filter("cust_hash_and_member_id_present=='true'").count()
+        facts["member_and_cust_dim_present_count"] = member_and_cust_dim_present_count
+        io_service.store_operational_stats(self.pipeline_uid,
+                                           self.pipeline_name,
+                                           self.task_name,
+                                           facts, status_time, batch_id)
+
+
+    def add_all_operational_stats_old(self, history_df, latest_snapshot_df,batch_id):
         io_service = IOService()
         status_time = Commons.get_curreny_time()
 

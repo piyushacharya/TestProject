@@ -103,3 +103,11 @@ class JsonReader(BaseReader):
         #     .json()
         #
         # self.set_output_dataframe(df)
+
+
+class DeltaStreamReader(BaseReader):
+    def __init__(self, task_name, type):
+        Task.__init__(self, task_name, type)
+
+    def execute(self):
+        pass

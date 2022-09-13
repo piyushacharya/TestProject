@@ -140,3 +140,46 @@ class EvenHubsBatchReaderNB(BaseReader):
         df = df.repartition(200)
 
         self.set_output_dataframe(df)
+
+
+
+class CSVBatchReader(BaseReader):
+    def __init__(self, task_name, type):
+        Task.__init__(self, task_name, type)
+
+    def execute(self):
+        pass
+
+
+class ParquetBatchReader(BaseReader):
+    def __init__(self, task_name, type):
+        Task.__init__(self, task_name, type)
+
+    def execute(self):
+        pass
+
+
+class JsonBatchReader(BaseReader):
+    def __init__(self, task_name, type):
+        Task.__init__(self, task_name, type)
+
+    def execute(self):
+        pass
+
+
+class RDBMSBatchReader(BaseReader):
+    def __init__(self, task_name, type):
+        Task.__init__(self, task_name, type)
+
+    def execute(self):
+        pass
+
+
+
+class DeltaBatchReader(BaseReader):
+    def __init__(self, task_name, type):
+        Task.__init__(self, task_name, type)
+
+    def execute(self):
+        pass
+
